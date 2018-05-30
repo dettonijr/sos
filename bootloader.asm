@@ -55,15 +55,9 @@ start:
     mov ax, KERNEL_ADDRESS
     call load_kernel
 
-    mov ax, KERNEL_MSG
-    call print
-    jmp end
- 
-end:
-    cli
-    hlt      ; stop forever 
+    ; Bye bye, never come back
+    jmp KERNEL_ADDRESS
  
     START_MSG db "Loading...", 10, 0
     times 510-($-$$) db 0  ; fill sector w/ 0's
     dw 0xAA55        ; req'd by some BIOSes
-    KERNEL_MSG db "Out of boot sector...", 0
