@@ -21,7 +21,8 @@ load_kernel:
     mov ch, 0       ; Cylinder
     mov cl, 2       ; Sector
     mov dh, 0       ; Head
-    mov dl, 0       ; Drive
+    ; mov dl, 0       ; Drive
+    ; Assuming drive is already in dl
     int 13h
 
     shr ax, 8
