@@ -13,8 +13,8 @@ jmp start
 ; This procedure loads the next sectors into memory
 ; AX = Memory location to load
 load_kernel:
-    push bx
-  
+    pusha
+ 
     mov bx, ax
     mov ah, 0x2     ; Operation READ
     mov al, 10      ; Sectors to read
@@ -24,7 +24,46 @@ load_kernel:
     mov dl, 0       ; Drive
     int 13h
 
-    pop bx
+    shr ax, 8
+    cmp ax, 0
+    je .end
+    .error:
+    ; Save our result in cx
+    mov cx, ax
+
+    mov ax, ERROR_MSG
+    call print
+
+    ; Print first char
+    mov bx, HEX_CHARS
+    mov ax, cx
+    shr ax, 4
+    and ax, 0x000f
+    add bx, ax
+    mov al, [bx]
+    call print_char
+ 
+    ; Print second char
+    mov bx, HEX_CHARS
+    mov ax, cx
+    and ax, 0x000f
+    add bx, ax
+    mov al, [bx]
+    call print_char
+
+    mov al, 13
+    call print_char
+    mov al, 10 
+    call print_char
+ 
+    .end:
+    popa
+    ret
+
+; AL = Contains the char to be printed
+print_char:
+    mov ah, 0Eh 
+    int 10h
     ret
 
 ; AX = Pointer to string to be printed
@@ -58,6 +97,8 @@ start:
     ; Bye bye, never come back
     jmp KERNEL_ADDRESS
  
-    START_MSG db "Loading...", 10, 0
+    START_MSG db "Loading...", 13, 10, 0
+    ERROR_MSG db "ERROR ", 0
+    HEX_CHARS db "0123456789abcdef"
     times 510-($-$$) db 0  ; fill sector w/ 0's
     dw 0xAA55        ; req'd by some BIOSes
