@@ -1,9 +1,9 @@
-BOOTLOADER_ASM=bootloader.asm
-BOOTLOADER_BIN=bootloader.bin
-SECOND_STAGE_ASM=second_stage.asm
-SECOND_STAGE_O=second_stage.o
+MBR_ASM=mbr.asm
+MBR_BIN=mbr.bin
+BOOT_C=boot.c
+BOOT_O=boot.o
 
-SRCS=boot.c
+SRCS=
 OBJS=$(patsubst %.c, %.o, $(SRCS))
 
 BOOT_BIN=boot.bin
@@ -22,16 +22,16 @@ DISK_IMG = disk.img
 all: $(DISK_IMG)
 
 clean:
-	rm $(DISK_IMG) $(OBJS) $(BOOT_BIN) $(BOOTLOADER_BIN)
+	rm $(DISK_IMG) $(OBJS) $(BOOT_O) $(BOOT_BIN) $(MBR_BIN)
 
 $(OBJS): $(SRCS)
 
-$(BOOT_BIN): $(SECOND_STAGE_O) $(OBJS)
-	ld -o $(BOOT_BIN) -nostdlib -static -m elf_i386 -Ttext 0x7e00 $(SECOND_STAGE_O) $(OBJS) --oformat binary
+$(BOOT_BIN): $(BOOT_O) $(OBJS)
+	ld -o $(BOOT_BIN) -nostdlib -static -m elf_i386 -Ttext 0x7e00 $(BOOT_O) $(OBJS) --oformat binary
 
-$(DISK_IMG): $(BOOTLOADER_BIN) $(BOOT_BIN)
+$(DISK_IMG): $(MBR_BIN) $(BOOT_BIN)
 	dd if=/dev/zero of=disk.img bs=512 count=2880
-	dd conv=notrunc if=$(BOOTLOADER_BIN) of=$(DISK_IMG) seek=0 
+	dd conv=notrunc if=$(MBR_BIN) of=$(DISK_IMG) seek=0 
 	dd conv=notrunc if=$(BOOT_BIN)       of=$(DISK_IMG) seek=1
 
 run: $(DISK_IMG) 
