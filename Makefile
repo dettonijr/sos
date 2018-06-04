@@ -1,6 +1,6 @@
 MBR_ASM=mbr.asm
 MBR_BIN=mbr.bin
-BOOT_C=boot.c
+BOOT_C=boot.cpp
 BOOT_O=boot.o
 
 SRCS=
@@ -16,8 +16,8 @@ DISK_IMG = disk.img
 %.o: %.asm
 	nasm $< -f elf32 -o $@
 
-%.o: %.c
-	gcc -O0 -g -ffreestanding -m16 -fno-pie -c $< -o $@
+%.o: %.cpp
+	g++ -std=c++11 -O0 -g -ffreestanding -m16 -fno-pie -c $< -o $@
 
 all: $(DISK_IMG)
 
