@@ -95,9 +95,73 @@ start:
     mov ax, KERNEL_ADDRESS
     call load_kernel
 
+    cli
+    lgdt [gdt_pointer] ; load the gdt table
+    mov eax, cr0 
+    or eax,0x1 ; set the protected mode bit on special CPU reg cr0
+    mov cr0, eax
+    jmp CODE_SEG:long_jmp
+
+bits 32
+long_jmp:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
     ; Bye bye, never come back
     jmp KERNEL_ADDRESS
- 
+
+CODE_SEG equ 8 ; Entry 1 (first 3 bits are ignored)
+DATA_SEG equ 16 ; Entry 2
+
+; We define 2 entries in the GDT. For data and code
+; Both start at base 0x0 and limit 0x0fffff (1<<20 - 1 _ 1mb)
+; Granularity is set to 4kb pages
+; So the segments go from 0x00000000 to 0xffffffff
+; That is the whole memory
+; After this, we can pretend we have a flat memory of 4GB
+
+gdt_pointer:
+    dw 3*8  ; size of gdt 3 entries of 8 bytes 
+    dd gdt_start  ; pointer to gdt
+gdt_start:
+    db 0,0,0,0,0,0,0,0
+gdt_code:
+    db 0xff ; lowest byte of Limit
+    db 0xff ; next byte of Limit
+    db 0x00 ; lowest byte of Base Addr
+    db 0x00 ; next byte of Base Addr
+    db 0x00 ; third byte of Base Addr
+    db 10011010b ; 1 - Present 
+                 ; 00 - Privilege 
+                 ; 1 - System
+                 ; 1010 Type
+    db 11001111b ; 1 - Granularity: Pages of 4kb
+                 ; 1 - 32 bit mode
+                 ; 0 - Reserved
+                 ; 0 - Available
+                 ; 1111 Highest bytes of limit
+    db 0x00 ; fourth and highest byte of Base Addr 
+gdt_data:
+    db 0xff ; lowest byte of Limit
+    db 0xff ; next byte of Limit
+    db 0x00 ; lowest byte of Base Addr
+    db 0x00 ; next byte of Base Addr
+    db 0x00 ; third byte of Base Addr
+    db 10010010b ; 1 - Present 
+                 ; 00 - Privilege 
+                 ; 1 - System
+                 ; 0010 Type
+    db 11001111b ; 1 - Granularity: Pages of 4kb
+                 ; 1 - 32 bit mode
+                 ; 0 - Reserved
+                 ; 0 - Available
+                 ; 1111 Highest bytes of limit
+    db 0x00 ; fourth and highest byte of Base Addr 
+    
     START_MSG db "Loading...", 13, 10, 0
     ERROR_MSG db "ERROR ", 0
     HEX_CHARS db "0123456789abcdef"

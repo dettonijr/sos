@@ -17,7 +17,7 @@ DISK_IMG = disk.img
 	nasm $< -f elf32 -o $@
 
 %.o: %.cpp
-	g++ -std=c++11 -O0 -g -ffreestanding -m16 -fno-pie -c $< -o $@
+	g++ -std=c++11 -O0 -g -ffreestanding -m32 -fno-pie -c $< -o $@
 
 all: $(DISK_IMG)
 

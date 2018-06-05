@@ -1,4 +1,3 @@
-asm(".code16gcc\n");
 asm("jmp boot_main\n");
 
 #include <stdint.h>
